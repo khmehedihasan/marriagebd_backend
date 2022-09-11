@@ -6,7 +6,9 @@ const filterSchema = mongoose.Schema({
     education:[],
     professional_area:[],
     working_sector:[],
-    living_country:[]
+    living_country:[],
+    height:[],
+    weight:[]
 
 });
 
