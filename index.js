@@ -34,6 +34,8 @@ app.get('/', async (req,res,next)=>{
 // app.use('/user',require('./src/Routers/user'));
 
 app.use('/filter', require('./src/Routers/filter'));
+app.use('/verify', require('./src/Routers/verify'));
+app.use('/login', require('./src/Routers/login'));
 
 
 
