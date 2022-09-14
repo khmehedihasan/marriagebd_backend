@@ -12,7 +12,7 @@ exports.sendCode = async (req, res, next)=>{
 
         const d = await User.find({"email":req.body.email});
         if(d.length > 0){
-            const data = await User.findOneAndUpdate(d[0]._id,{$set:{verificationCode:code}})
+            const data = await User.findByIdAndUpdate(d[0]._id,{$set:{verificationCode:code}});
 
             if(data._id != undefined){
 
