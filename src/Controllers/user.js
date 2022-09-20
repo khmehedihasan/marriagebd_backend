@@ -130,3 +130,55 @@ exports.search = async (req, res, next) =>{
         next(error);
     }
 }
+
+
+//---------------------------------------------------all Category--------------------------------------------------------
+
+exports.allCategory = async (req,res,next)=>{
+    try{
+
+        console.log(req.query.limit);
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skip = (page-1) * limit;
+        const result = {};
+        result.totalData = await User.countDocuments();
+        result.data = []
+
+
+        if(limit == 0){
+            result.totalPage = 1;
+        }else{
+            result.totalPage = Math.ceil(await User.countDocuments()/limit);
+        }
+
+        result.previous = {
+            page: page-1,
+            limit
+        }
+        if(page == result.totalPage){
+            result.next = {
+                page: 0,
+                limit
+            }    
+        }
+
+        else{
+            result.next = {
+                page: page+1,
+                limit
+            }
+        }
+
+        result.data = await User.find().select({__v:0}).limit(limit).skip(skip);
+
+        if(result.totalData<1){
+            res.status(400).send({status:false,message:"No people found."});
+        }else{
+            res.json({status:true,result});
+        }
+
+    }catch(error){
+        next(error);
+    }
+}
