@@ -22,7 +22,7 @@ const userSchema = mongoose.Schema({
         require:true
     },
     birthDate:{
-        type:String,
+        type:Date,
         require:true
     },
     religion:{
@@ -103,11 +103,11 @@ const userSchema = mongoose.Schema({
     },
     physicalDetails:String,
     weight:{
-        type:String,
+        type:Number,
         require:true 
     },
     height:{
-        type:String,
+        type:Number,
         requite:true 
     },
     blood:String,
