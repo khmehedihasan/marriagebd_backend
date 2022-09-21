@@ -92,7 +92,7 @@ exports.search = async (req, res, next) =>{
 
             {
                 $and:[
-                    // {"gender":"Female"},
+                    {"gender":"Female"},
                     {
                         "birthDate":{
                             $gte: getDay(80),
@@ -137,13 +137,25 @@ exports.search = async (req, res, next) =>{
 exports.allCategory = async (req,res,next)=>{
     try{
 
-        console.log(req.query.limit);
+        
+        const {gender, home_division, education, living_country, working_sector, professional_area, ageMin, ageMax, heightMin, heightMax } = req.body;
         const page = parseInt(req.query.page);
         const limit = parseInt(req.query.limit);
         const skip = (page-1) * limit;
         const result = {};
         result.totalData = await User.countDocuments();
         result.data = []
+
+        const getDay = (age)=>{
+
+            const date = new Date()
+        
+            const year = date.getFullYear()-age;
+            const month = date.getMonth();
+            const dat = date.getDate();
+    
+            return(new Date(`${year}-${month}-${dat}`))
+        }
 
 
         if(limit == 0){
@@ -170,7 +182,43 @@ exports.allCategory = async (req,res,next)=>{
             }
         }
 
-        result.data = await User.find().select({__v:0}).limit(limit).skip(skip);
+        result.data = await User.find(
+            {
+                $and:[
+                    {"gender":gender},
+                    {
+                        "birthDate":{
+                            $gte: getDay(ageMax),
+                            $lte: getDay(ageMin)
+                        }
+                    },
+                    {
+                        "height":{
+                            $gte:heightMin,
+                            $lte:heightMax
+                        }
+                    },
+                    {
+                        "profession":{ $in : professional_area},
+
+                    },
+                    {
+                        "workingSector":{$in:working_sector}
+                    },
+                    {
+                        "educationQualification":{$in:education}
+                    },
+                    {
+                        "homeDivision":{$in:home_division}
+                    },
+                    {
+                        "livingIn":{$in:living_country}
+                    }
+                ]
+            }
+        ).select({__v:0}).limit(limit).skip(skip);
+
+        // console.log(result)
 
         if(result.totalData<1){
             res.status(400).send({status:false,message:"No people found."});
