@@ -3,6 +3,10 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
 const userSchema = mongoose.Schema({
+    uid:{
+        type:String,
+        require:true,
+    },
     name:{
         type:String,
         require:true,
@@ -62,7 +66,7 @@ const userSchema = mongoose.Schema({
         type:String,
         require:true 
     },
-    homeDicision:{
+    homeDivision:{
         type:String,
         require:true 
     },
