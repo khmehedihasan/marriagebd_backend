@@ -1,8 +1,13 @@
 const Unverified = require('../Models/Unverified');
 const User = require('../Models/User');
 const nodemailer = require('nodemailer');
+const ShortUniqueId = require('short-unique-id');
+
+
 exports.AddUnverified = async (req, res, next)=>{
     try{
+        const uuid = new ShortUniqueId({ length: 16 });
+        const uid = uuid();
 
         const reqData ={
         name,
@@ -20,7 +25,7 @@ exports.AddUnverified = async (req, res, next)=>{
         professionDetails,
         profession,
         incame,
-        homeDicision,
+        homeDivision,
         fatherStatus,
         familyDetails,
         livingIn,
@@ -47,6 +52,7 @@ exports.AddUnverified = async (req, res, next)=>{
         } = req.body;
 
     const user = await User({
+        uid,
         name,
         email,
         phone,
@@ -62,7 +68,7 @@ exports.AddUnverified = async (req, res, next)=>{
         professionDetails,
         profession,
         incame,
-        homeDicision,
+        homeDivision,
         fatherStatus,
         familyDetails,
         livingIn,
@@ -100,6 +106,7 @@ exports.AddUnverified = async (req, res, next)=>{
         const d = await Unverified({
             userId:data._id,
             data:{
+                uid,
                 name,
                 email,
                 phone,
@@ -115,7 +122,7 @@ exports.AddUnverified = async (req, res, next)=>{
                 professionDetails,
                 profession,
                 incame,
-                homeDicision,
+                homeDivision,
                 fatherStatus,
                 familyDetails,
                 livingIn,
