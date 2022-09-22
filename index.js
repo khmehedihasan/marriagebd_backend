@@ -39,6 +39,9 @@ app.use('/verify', require('./src/Routers/verify'));
 app.use('/login', require('./src/Routers/login'));
 app.delete('/logout/:id', logoutUser);
 
+app.use('/chat',require('./src/Routers/chat'));
+
+
 
 
 
