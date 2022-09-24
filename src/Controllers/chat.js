@@ -1,23 +1,42 @@
 const Chat = require('../Models/Chat');
 const User = require('../Models/User');
 
-exports.sendChat = async (req, res, next) =>{
+// exports.sendChat = async (req, res, next) =>{
+//     try{
+//         // console.log(req.body);
+//         const data = await Chat({
+//             senderId:req.body.senderId,
+//             receiverId:req.body.receiverId,
+//             message:req.body.message,
+//             user:req.body.senderId
+//         });
+//         await data.save();
+
+//         res.send({status:true, message:"Message send successfully."});
+
+//     }catch(error){
+//         next(error);
+//     }
+// }
+
+
+exports.sendChat = async (data) =>{
+    // console.log(data)
     try{
         // console.log(req.body);
-        const data = await Chat({
-            senderId:req.body.senderId,
-            receiverId:req.body.receiverId,
-            message:req.body.message,
-            user:req.body.senderId
+        const d = await Chat({
+            senderId:data.senderId,
+            receiverId:data.receiverId,
+            message:data.message,
+            user:data.senderId
         });
-        await data.save();
-
-        res.send({status:true, message:"Message send successfully."});
+        await d.save();
 
     }catch(error){
-        next(error);
+        console.log(error);
     }
 }
+
 
 exports.getFrends = async (req, res, next) =>{
     try{
