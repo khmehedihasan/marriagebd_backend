@@ -2,6 +2,7 @@ require('dotenv').config();
 require('./src/DB/connect');
 const cookieParser = require('cookie-parser');
 const express = require('express');
+const { Server } = require('socket.io');
 const app = express();
 
 app.use(express.json());
@@ -53,7 +54,41 @@ app.use(require('./src/Middlewares/errorHandler'));
 
 
 
+//----------------------------------------------socket.io-----------------------------------------------
+const chat = require('./src/Controllers/chat')
+const server = require('http').createServer(app);
 
-app.listen(process.env.PORT,()=>{
+const io = new Server(server,{
+    
+    cors:{
+        methods:["GET", "POST"],
+        origin:["http://localhost:3000"]
+    },
+});
+
+io.on("connection", (socket)=>{
+    // console.log(socket.id);
+
+
+    socket.on("join_chat", (data)=>{
+        socket.join(data);
+        console.log(data)
+    });
+
+    socket.on("send_message", (data)=>{
+        // console.log(data)
+        chat.sendChat(data);
+        socket.to(data.receiverId).emit("receive_message",data);
+    });
+
+    socket.on("disconnect", ()=>{
+        console.log('Disconnected')
+    });
+})
+
+
+
+
+server.listen(process.env.PORT,()=>{
     console.log(`App is running on port ${process.env.PORT}...`);
 });
