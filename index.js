@@ -72,7 +72,7 @@ io.on("connection", (socket)=>{
 
     socket.on("join_chat", (data)=>{
         socket.join(data);
-        console.log(data)
+        // console.log(data)
     });
 
     socket.on("send_message", (data)=>{
@@ -82,7 +82,7 @@ io.on("connection", (socket)=>{
     });
 
     socket.on("disconnect", ()=>{
-        console.log('Disconnected')
+        // console.log('Disconnected')
     });
 })
 

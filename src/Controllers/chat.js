@@ -41,19 +41,44 @@ exports.sendChat = async (data) =>{
 exports.getFrends = async (req, res, next) =>{
     try{
 
-         Chat.distinct('receiverId',{ senderId:req.query.senderId }, async (error,data)=>{
+        let friend = [];
+
+         Chat.distinct('receiverId',{
+            $or:[
+                {senderId:req.query.senderId},
+            ]
+         }, async (error,data)=>{
             try{
                 if(error){
                     next(error);
                 }else{
                     const user = await User.find({_id:data}).select({name:1});
-                    res.send({status:true, data:user});
+                    friend = [...friend,...user];
+
+                    Chat.distinct('senderId',{
+                        $and:[
+                            {receiverId:req.query.senderId},
+                            {senderId:{$ne: req.query.senderId}}
+                        ]
+                     }, async (error,data)=>{
+                        try{
+                            if(error){
+                                next(error);
+                            }else{
+                                const user = await User.find({_id:data}).select({name:1});
+                                friend = [...friend,...user];
+             
+                                res.send({status:true, data:friend});
+                            }
+                        }catch(error){
+                            next(error);
+                        }
+                    });
                 }
             }catch(error){
                 next(error);
             }
-        })
-
+        });
 
     }catch(error){
         next(error);

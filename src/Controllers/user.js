@@ -1,4 +1,5 @@
 const User = require('../Models/User');
+const fs = require('fs');
 
 // const getAge = (date)=>{
 
@@ -19,6 +20,7 @@ const User = require('../Models/User');
 //     return age;
 // }
 
+//---------------------------------------------------all User --------------------------------------------------------
 
 exports.getAlluser = async (req, res, next) =>{
     try{
@@ -32,109 +34,130 @@ exports.getAlluser = async (req, res, next) =>{
     }
 }
 
-exports.search = async (req, res, next) =>{
 
 
-    const getDay = (age)=>{
-
-        const date = new Date()
-    
-        const year = date.getFullYear()-age;
-        const month = date.getMonth();
-        const dat = date.getDate();
-        // console.log(year)
-        // console.log(month)
-        // console.log(dat)
-
-        // console.log(new Date(`${year}-${month}-${dat}`))
+//---------------------------------------------------Single User --------------------------------------------------------
 
 
-        return(new Date(`${year}-${month}-${dat}`))
-    }
-
+exports.getSingle = async (req, res, next) =>{
     try{
+        const data = await User.findById(req.params.id).select({password:0, token:0, verificationCode:0});
+        if(data !== null ){
+            res.send({status:true, data});
+        }else{
+            res.send({status:false});
+        };
 
-        const profession = [
-            // "Accounting & Banking",
-            // "Administration & HR",
-            // "Advertising & Media",
-            "Agriculture",
-            // "Airline & Aviation",
-            // "Architecture & Design",
-            // "Artists & Animators",
-            // "Beauty & Fashion",
-            // "Defense",
-            // "Education & Training",
-            // "Engineering",
-            "IT & Software Engineering",
-            // "Legal",
-            // "Medical & Healthcare",
-            "Sales & Marketing",
-            // "Business & Others",
-            // "Not Working"
-          ]
-
-          const workingSector  =[
-            "Private Company",
-            // "Government / Public Sector",
-            // "Defense / Civil Services",
-            // "Business / Self Employed",
-            " Not Working"
-          ]
-
-          const educationQualification = ["Bachelors"]
-
-          const livingCity = ["Dhaka","Tangail"]
-
-          const livingIn = ["Bangladesh"]
-
-        const data = await User.find(
-
-            {
-                $and:[
-                    {"gender":"Female"},
-                    {
-                        "birthDate":{
-                            $gte: getDay(80),
-                            $lte: getDay(10)
-                        }
-                    },
-                    {
-                        "height":{
-                            $gte:40,
-                            $lte:80
-                        }
-                    },
-                    {
-                        "profession":{ $in : profession },
-
-                    },
-                    {
-                        "workingSector":{$in:workingSector}
-                    },
-                    {
-                        "educationQualification":{$in:educationQualification}
-                    },
-                    {
-                        "livingCity":{$in:livingCity}
-                    },
-                    {
-                        "livingIn":{$in:livingIn}
-                    }
-                ]
-            }
-            
-            ).select({password:0, token:0, verificationCode:0});
-        res.send(data);
     }catch(error){
         next(error);
     }
 }
 
 
-//---------------------------------------------------all Category--------------------------------------------------------
 
-exports.allCategory = async (req,res,next)=>{
+// exports.search = async (req, res, next) =>{
+
+
+//     const getDay = (age)=>{
+
+//         const date = new Date()
+    
+//         const year = date.getFullYear()-age;
+//         const month = date.getMonth();
+//         const dat = date.getDate();
+//         // console.log(year)
+//         // console.log(month)
+//         // console.log(dat)
+
+//         // console.log(new Date(`${year}-${month}-${dat}`))
+
+
+//         return(new Date(`${year}-${month}-${dat}`))
+//     }
+
+//     try{
+
+//         const profession = [
+//             // "Accounting & Banking",
+//             // "Administration & HR",
+//             // "Advertising & Media",
+//             "Agriculture",
+//             // "Airline & Aviation",
+//             // "Architecture & Design",
+//             // "Artists & Animators",
+//             // "Beauty & Fashion",
+//             // "Defense",
+//             // "Education & Training",
+//             // "Engineering",
+//             "IT & Software Engineering",
+//             // "Legal",
+//             // "Medical & Healthcare",
+//             "Sales & Marketing",
+//             // "Business & Others",
+//             // "Not Working"
+//           ]
+
+//           const workingSector  =[
+//             "Private Company",
+//             // "Government / Public Sector",
+//             // "Defense / Civil Services",
+//             // "Business / Self Employed",
+//             " Not Working"
+//           ]
+
+//           const educationQualification = ["Bachelors"]
+
+//           const livingCity = ["Dhaka","Tangail"]
+
+//           const livingIn = ["Bangladesh"]
+
+//         const data = await User.find(
+
+//             {
+//                 $and:[
+//                     {"gender":"Female"},
+//                     {
+//                         "birthDate":{
+//                             $gte: getDay(80),
+//                             $lte: getDay(10)
+//                         }
+//                     },
+//                     {
+//                         "height":{
+//                             $gte:40,
+//                             $lte:80
+//                         }
+//                     },
+//                     {
+//                         "profession":{ $in : profession },
+
+//                     },
+//                     {
+//                         "workingSector":{$in:workingSector}
+//                     },
+//                     {
+//                         "educationQualification":{$in:educationQualification}
+//                     },
+//                     {
+//                         "livingCity":{$in:livingCity}
+//                     },
+//                     {
+//                         "livingIn":{$in:livingIn}
+//                     }
+//                 ]
+//             }
+            
+//             ).select({password:0, token:0, verificationCode:0});
+//         res.send(data);
+//     }catch(error){
+//         next(error);
+//     }
+// }
+
+
+//---------------------------------------------------all User by search--------------------------------------------------------
+
+exports.search = async (req,res,next)=>{
     try{
 
         
@@ -143,9 +166,6 @@ exports.allCategory = async (req,res,next)=>{
         const limit = parseInt(req.query.limit);
         const skip = (page-1) * limit;
         const result = {};
-        result.totalData = await User.countDocuments();
-        result.data = []
-
         const getDay = (age)=>{
 
             const date = new Date()
@@ -157,11 +177,82 @@ exports.allCategory = async (req,res,next)=>{
             return(new Date(`${year}-${month}-${dat}`))
         }
 
+        result.totalData = await User.find(
+            {
+                $and:[
+                    {"gender":gender},
+                    {
+                        "birthDate":{
+                            $gte: getDay(ageMax),
+                            $lte: getDay(ageMin)
+                        }
+                    },
+                    {
+                        "height":{
+                            $gte:heightMin,
+                            $lte:heightMax
+                        }
+                    },
+                    {
+                        "profession":{ $in : professional_area},
+
+                    },
+                    {
+                        "workingSector":{$in:working_sector}
+                    },
+                    {
+                        "educationQualification":{$in:education}
+                    },
+                    {
+                        "homeDivision":{$in:home_division}
+                    },
+                    {
+                        "livingIn":{$in:living_country}
+                    }
+                ]
+            }
+        ).countDocuments();
+        result.data = [];
+
 
         if(limit == 0){
             result.totalPage = 1;
         }else{
-            result.totalPage = Math.ceil(await User.countDocuments()/limit);
+            result.totalPage = Math.ceil(await User.find(
+                {
+                    $and:[
+                        {"gender":gender},
+                        {
+                            "birthDate":{
+                                $gte: getDay(ageMax),
+                                $lte: getDay(ageMin)
+                            }
+                        },
+                        {
+                            "height":{
+                                $gte:heightMin,
+                                $lte:heightMax
+                            }
+                        },
+                        {
+                            "profession":{ $in : professional_area},
+    
+                        },
+                        {
+                            "workingSector":{$in:working_sector}
+                        },
+                        {
+                            "educationQualification":{$in:education}
+                        },
+                        {
+                            "homeDivision":{$in:home_division}
+                        },
+                        {
+                            "livingIn":{$in:living_country}
+                        }
+                    ]
+                }
+            ).countDocuments()/limit);
         }
 
         result.previous = {
@@ -226,6 +317,41 @@ exports.allCategory = async (req,res,next)=>{
             res.json({status:true,result});
         }
 
+    }catch(error){
+        next(error);
+    }
+}
+
+exports.changePic = async (req, res, next) =>{
+    try{
+        const photo = req.file.filename;
+        const image = process.env.PUBLIC_LINK+req.file.filename;
+
+        const data = await User.findByIdAndUpdate(req.params.id,{$set:{
+            img:image,
+            photo:photo
+        }});
+
+        if(data._id == undefined){
+
+            fs.unlink('./src/upload/' + photo, (error) => {
+                if (error) {
+                    next(error);
+                }
+            });
+            res.status(400).send({status:false,message:"User not found."});
+
+        }else{
+            if(data.photo){
+                fs.unlink('./src/upload/' + data.photo, (error) => {
+                    if (error) {
+                        next(error);
+                    }
+                });
+            }
+
+            res.json({status:true,message:'Profile picture update successfully.'});
+        }
     }catch(error){
         next(error);
     }

@@ -143,6 +143,13 @@ const userSchema = mongoose.Schema({
         type:String,
         requite:true,
     },
+    img:{
+        type:String,
+
+    },
+    photo:{
+        type:String,
+    },
     verificationCode:String,
     token:{
         type:String,

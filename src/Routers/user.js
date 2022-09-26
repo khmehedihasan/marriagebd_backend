@@ -1,9 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const user = require('../Controllers/user');
+const validObjectId = require('../Middlewares/validObjectId');
+const cheackToken = require('../Middlewares/cheackToken');
+const uploadPhoto = require('../Middlewares/uploadPhoto');
 
 router.get('/', user.getAlluser);
 router.get('/search', user.search);
-router.post('/search', user.allCategory);
+router.get('/:id', user.getSingle);
+router.post('/search', user.search);
+router.put('/changePic/:id', validObjectId,  uploadPhoto.single('photo'), user.changePic);
 
 module.exports = router;
