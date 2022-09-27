@@ -24,8 +24,48 @@ const fs = require('fs');
 
 exports.getAlluser = async (req, res, next) =>{
     try{
-        const data = await User.find().select({password:0, token:0, verificationCode:0});
-        res.send(data);
+
+        const page = parseInt(req.query.page);
+        const limit = parseInt(req.query.limit);
+        const skip = (page-1) * limit;
+        const result = {};
+        result.totalData = await User.countDocuments();
+        result.data = []
+
+
+        if(limit == 0){
+            result.totalPage = 1;
+        }else{
+            result.totalPage = Math.ceil(await User.countDocuments()/limit);
+        }
+
+        result.previous = {
+            page: page-1,
+            limit
+        }
+        if(page == result.totalPage){
+            result.next = {
+                page: 0,
+                limit
+            }    
+        }
+
+        else{
+            result.next = {
+                page: page+1,
+                limit
+            }
+        }
+
+        result.data = await User.find().select({password:0, token:0, verificationCode:0}).limit(limit).skip(skip);;
+
+        if(result.totalData<1){
+            res.status(400).send({status:false,message:"Category not found."});
+        }else{
+            res.json({status:true,result});
+        }
+
+
 
         // const age = getAge(data[1].birthDate);
 
@@ -33,6 +73,71 @@ exports.getAlluser = async (req, res, next) =>{
         next(error);
     }
 }
+
+
+//---------------------------------------------------search user--------------------------------------------------------
+
+exports.searchUser = async (req,res,next)=>{
+    try{
+
+
+        const dcount = await User.find({"$or":[
+            {uid: { $regex: req.query.search, $options: 'i' } },
+            {name: { $regex: req.query.search, $options: 'i' } },
+            {email: { $regex: req.query.search, $options: 'i' } },
+            {phone: { $regex: req.query.search, $options: 'i' } },
+        ]}).count();
+
+        if(dcount<1){
+            res.status(400).send({status:false,message:"User not found."});
+        }else{
+            const page = parseInt(req.query.page);
+            const limit = parseInt(req.query.limit);
+            const skip = (page-1) * limit;
+            const result = {};
+            result.data = [];
+
+
+            result.data = await User.find({"$or":[
+                {uid: { $regex: req.query.search, $options: 'i' } },
+                {name: { $regex: req.query.search, $options: 'i' } },
+                {email: { $regex: req.query.search, $options: 'i' } },
+                {phone: { $regex: req.query.search, $options: 'i' } },
+            ]}).select({__v:0}).limit(limit).skip(skip);
+
+            result.totalData = dcount;
+
+            if(limit == 0){
+                result.totalPage = 1;
+            }else{
+                result.totalPage = Math.ceil(dcount/limit);
+            }
+
+            result.previous = {
+                page: page-1,
+                limit
+            }
+    
+            if(page == result.totalPage){
+                result.next = {
+                    page: 0,
+                    limit
+                }    
+            }else{
+                result.next = {
+                    page: page+1,
+                    limit
+                }
+            }
+
+            res.json({status:true,result});
+        }
+
+    }catch(error){
+        next(error);
+    }
+}
+
 
 
 

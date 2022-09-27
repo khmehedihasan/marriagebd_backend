@@ -6,7 +6,7 @@ const cheackToken = require('../Middlewares/cheackToken');
 const uploadPhoto = require('../Middlewares/uploadPhoto');
 
 router.get('/', user.getAlluser);
-router.get('/search', user.search);
+router.get('/search', user.searchUser);
 router.get('/:id', user.getSingle);
 router.post('/search', user.search);
 router.put('/changePic/:id', validObjectId,  uploadPhoto.single('photo'), user.changePic);

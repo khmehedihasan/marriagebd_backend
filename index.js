@@ -33,6 +33,7 @@ app.get('/', async (req,res,next)=>{
 //----------------------------------------------------Routers-----------------------------------------------------
 
 app.use('/user',require('./src/Routers/user'));
+app.use('/admin',require('./src/Routers/admin'));
 const logoutUser = require('./src/Controllers/logOut');
 
 app.use('/filter', require('./src/Routers/filter'));
@@ -41,6 +42,7 @@ app.use('/login', require('./src/Routers/login'));
 app.delete('/logout/:id', logoutUser);
 
 app.use('/chat',require('./src/Routers/chat'));
+app.use('/message',require('./src/Routers/message'));
 
 
 
