@@ -43,6 +43,7 @@ app.delete('/logout/:id', logoutUser);
 
 app.use('/chat',require('./src/Routers/chat'));
 app.use('/message',require('./src/Routers/message'));
+app.use('/payment',require('./src/Routers/payment'));
 
 
 

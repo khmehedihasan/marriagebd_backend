@@ -9,6 +9,7 @@ router.get('/', user.getAlluser);
 router.get('/search', user.searchUser);
 router.get('/:id', user.getSingle);
 router.post('/search', user.search);
+router.put('/packageValidity/:id', user.packageValidity);
 router.put('/changePic/:id', validObjectId,  uploadPhoto.single('photo'), user.changePic);
 
 module.exports = router;

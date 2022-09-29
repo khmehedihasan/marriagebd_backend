@@ -151,6 +151,16 @@ const userSchema = mongoose.Schema({
         type:String,
     },
     verificationCode:String,
+    payments:[
+        {
+            type: mongoose.Types.ObjectId,
+            ref:"Payment"
+        }
+    ],
+    packageValidity:{
+        type:Date,
+        default: ()=> { return new Date() }
+    },
     token:{
         type:String,
         require:true 

@@ -60,7 +60,7 @@ exports.getAlluser = async (req, res, next) =>{
         result.data = await User.find().select({password:0, token:0, verificationCode:0}).limit(limit).skip(skip);;
 
         if(result.totalData<1){
-            res.status(400).send({status:false,message:"Category not found."});
+            res.status(400).send({status:false,message:"User not found."});
         }else{
             res.json({status:true,result});
         }
@@ -146,7 +146,7 @@ exports.searchUser = async (req,res,next)=>{
 
 exports.getSingle = async (req, res, next) =>{
     try{
-        const data = await User.findById(req.params.id).select({password:0, token:0, verificationCode:0});
+        const data = await User.findById(req.params.id).populate("payments", "package trxId date").select({password:0, token:0, verificationCode:0});
         if(data !== null ){
             res.send({status:true, data});
         }else{
@@ -158,6 +158,21 @@ exports.getSingle = async (req, res, next) =>{
     }
 }
 
+
+exports.packageValidity = async (req, res, next)=>{
+    try{
+
+        const data = await User.findByIdAndUpdate(req.params.id, {packageValidity:req.body.date});
+        if(data._id === undefined){
+            res.send({status:false, message:"Faild to update validity."});
+        }else{
+
+        } res.send({status:true, message:"Successfully update validity."});
+
+    }catch(error){
+        next(error);
+    }
+}
 
 
 // exports.search = async (req, res, next) =>{
