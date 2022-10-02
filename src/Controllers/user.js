@@ -1,5 +1,5 @@
-const User = require('../Models/User');
-const fs = require('fs');
+const User = require("../Models/User");
+const fs = require("fs");
 
 // const getAge = (date)=>{
 
@@ -22,166 +22,158 @@ const fs = require('fs');
 
 //---------------------------------------------------all User --------------------------------------------------------
 
-exports.getAlluser = async (req, res, next) =>{
-    try{
+exports.getAlluser = async (req, res, next) => {
+  try {
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const skip = (page - 1) * limit;
+    const result = {};
+    result.totalData = await User.countDocuments();
+    result.data = [];
 
-        const page = parseInt(req.query.page);
-        const limit = parseInt(req.query.limit);
-        const skip = (page-1) * limit;
-        const result = {};
-        result.totalData = await User.countDocuments();
-        result.data = []
-
-
-        if(limit == 0){
-            result.totalPage = 1;
-        }else{
-            result.totalPage = Math.ceil(await User.countDocuments()/limit);
-        }
-
-        result.previous = {
-            page: page-1,
-            limit
-        }
-        if(page == result.totalPage){
-            result.next = {
-                page: 0,
-                limit
-            }    
-        }
-
-        else{
-            result.next = {
-                page: page+1,
-                limit
-            }
-        }
-
-        result.data = await User.find().select({password:0, token:0, verificationCode:0}).limit(limit).skip(skip);;
-
-        if(result.totalData<1){
-            res.status(400).send({status:false,message:"User not found."});
-        }else{
-            res.json({status:true,result});
-        }
-
-
-
-        // const age = getAge(data[1].birthDate);
-
-    }catch(error){
-        next(error);
+    if (limit == 0) {
+      result.totalPage = 1;
+    } else {
+      result.totalPage = Math.ceil((await User.countDocuments()) / limit);
     }
-}
 
+    result.previous = {
+      page: page - 1,
+      limit,
+    };
+    if (page == result.totalPage) {
+      result.next = {
+        page: 0,
+        limit,
+      };
+    } else {
+      result.next = {
+        page: page + 1,
+        limit,
+      };
+    }
+
+    result.data = await User.find()
+      .select({ password: 0, token: 0, verificationCode: 0 })
+      .limit(limit)
+      .skip(skip);
+
+    if (result.totalData < 1) {
+      res.status(400).send({ status: false, message: "User not found." });
+    } else {
+      res.json({ status: true, result });
+    }
+
+    // const age = getAge(data[1].birthDate);
+  } catch (error) {
+    next(error);
+  }
+};
 
 //---------------------------------------------------search user--------------------------------------------------------
 
-exports.searchUser = async (req,res,next)=>{
-    try{
+exports.searchUser = async (req, res, next) => {
+  try {
+    const dcount = await User.find({
+      $or: [
+        { uid: { $regex: req.query.search, $options: "i" } },
+        { name: { $regex: req.query.search, $options: "i" } },
+        { email: { $regex: req.query.search, $options: "i" } },
+        { phone: { $regex: req.query.search, $options: "i" } },
+      ],
+    }).count();
 
+    if (dcount < 1) {
+      res.status(400).send({ status: false, message: "User not found." });
+    } else {
+      const page = parseInt(req.query.page);
+      const limit = parseInt(req.query.limit);
+      const skip = (page - 1) * limit;
+      const result = {};
+      result.data = [];
 
-        const dcount = await User.find({"$or":[
-            {uid: { $regex: req.query.search, $options: 'i' } },
-            {name: { $regex: req.query.search, $options: 'i' } },
-            {email: { $regex: req.query.search, $options: 'i' } },
-            {phone: { $regex: req.query.search, $options: 'i' } },
-        ]}).count();
+      result.data = await User.find({
+        $or: [
+          { uid: { $regex: req.query.search, $options: "i" } },
+          { name: { $regex: req.query.search, $options: "i" } },
+          { email: { $regex: req.query.search, $options: "i" } },
+          { phone: { $regex: req.query.search, $options: "i" } },
+        ],
+      })
+        .select({ __v: 0 })
+        .limit(limit)
+        .skip(skip);
 
-        if(dcount<1){
-            res.status(400).send({status:false,message:"User not found."});
-        }else{
-            const page = parseInt(req.query.page);
-            const limit = parseInt(req.query.limit);
-            const skip = (page-1) * limit;
-            const result = {};
-            result.data = [];
+      result.totalData = dcount;
 
+      if (limit == 0) {
+        result.totalPage = 1;
+      } else {
+        result.totalPage = Math.ceil(dcount / limit);
+      }
 
-            result.data = await User.find({"$or":[
-                {uid: { $regex: req.query.search, $options: 'i' } },
-                {name: { $regex: req.query.search, $options: 'i' } },
-                {email: { $regex: req.query.search, $options: 'i' } },
-                {phone: { $regex: req.query.search, $options: 'i' } },
-            ]}).select({__v:0}).limit(limit).skip(skip);
+      result.previous = {
+        page: page - 1,
+        limit,
+      };
 
-            result.totalData = dcount;
+      if (page == result.totalPage) {
+        result.next = {
+          page: 0,
+          limit,
+        };
+      } else {
+        result.next = {
+          page: page + 1,
+          limit,
+        };
+      }
 
-            if(limit == 0){
-                result.totalPage = 1;
-            }else{
-                result.totalPage = Math.ceil(dcount/limit);
-            }
-
-            result.previous = {
-                page: page-1,
-                limit
-            }
-    
-            if(page == result.totalPage){
-                result.next = {
-                    page: 0,
-                    limit
-                }    
-            }else{
-                result.next = {
-                    page: page+1,
-                    limit
-                }
-            }
-
-            res.json({status:true,result});
-        }
-
-    }catch(error){
-        next(error);
+      res.json({ status: true, result });
     }
-}
-
-
-
+  } catch (error) {
+    next(error);
+  }
+};
 
 //---------------------------------------------------Single User --------------------------------------------------------
 
-
-exports.getSingle = async (req, res, next) =>{
-    try{
-        const data = await User.findById(req.params.id).populate("payments", "package trxId date").select({password:0, token:0, verificationCode:0});
-        if(data !== null ){
-            res.send({status:true, data});
-        }else{
-            res.send({status:false});
-        };
-
-    }catch(error){
-        next(error);
+exports.getSingle = async (req, res, next) => {
+  try {
+    const data = await User.findById(req.params.id)
+      .populate("payments", "package trxId date")
+      .select({ password: 0, token: 0, verificationCode: 0 });
+    if (data !== null) {
+      res.send({ status: true, data });
+    } else {
+      res.send({ status: false });
     }
-}
+  } catch (error) {
+    next(error);
+  }
+};
 
-
-exports.packageValidity = async (req, res, next)=>{
-    try{
-
-        const data = await User.findByIdAndUpdate(req.params.id, {packageValidity:req.body.date});
-        if(data._id === undefined){
-            res.send({status:false, message:"Faild to update validity."});
-        }else{
-
-        } res.send({status:true, message:"Successfully update validity."});
-
-    }catch(error){
-        next(error);
+exports.packageValidity = async (req, res, next) => {
+  try {
+    const data = await User.findByIdAndUpdate(req.params.id, {
+      packageValidity: req.body.date,
+    });
+    if (data._id === undefined) {
+      res.send({ status: false, message: "Faild to update validity." });
+    } else {
     }
-}
-
+    res.send({ status: true, message: "Successfully update validity." });
+  } catch (error) {
+    next(error);
+  }
+};
 
 // exports.search = async (req, res, next) =>{
-
 
 //     const getDay = (age)=>{
 
 //         const date = new Date()
-    
+
 //         const year = date.getFullYear()-age;
 //         const month = date.getMonth();
 //         const dat = date.getDate();
@@ -190,7 +182,6 @@ exports.packageValidity = async (req, res, next)=>{
 //         // console.log(dat)
 
 //         // console.log(new Date(`${year}-${month}-${dat}`))
-
 
 //         return(new Date(`${year}-${month}-${dat}`))
 //     }
@@ -266,7 +257,7 @@ exports.packageValidity = async (req, res, next)=>{
 //                     }
 //                 ]
 //             }
-            
+
 //             ).select({password:0, token:0, verificationCode:0});
 //         res.send(data);
 //     }catch(error){
@@ -274,205 +265,305 @@ exports.packageValidity = async (req, res, next)=>{
 //     }
 // }
 
-
 //---------------------------------------------------all User by search--------------------------------------------------------
 
-exports.search = async (req,res,next)=>{
-    try{
+exports.search = async (req, res, next) => {
+  try {
+    const {
+      gender,
+      home_division,
+      education,
+      living_country,
+      working_sector,
+      professional_area,
+      ageMin,
+      ageMax,
+      heightMin,
+      heightMax,
+    } = req.body;
+    const page = parseInt(req.query.page);
+    const limit = parseInt(req.query.limit);
+    const skip = (page - 1) * limit;
+    const result = {};
+    const getDay = (age) => {
+      const date = new Date();
 
-        
-        const {gender, home_division, education, living_country, working_sector, professional_area, ageMin, ageMax, heightMin, heightMax } = req.body;
-        const page = parseInt(req.query.page);
-        const limit = parseInt(req.query.limit);
-        const skip = (page-1) * limit;
-        const result = {};
-        const getDay = (age)=>{
+      const year = date.getFullYear() - age;
+      const month = date.getMonth();
+      const dat = date.getDate();
 
-            const date = new Date()
-        
-            const year = date.getFullYear()-age;
-            const month = date.getMonth();
-            const dat = date.getDate();
-    
-            return(new Date(`${year}-${month}-${dat}`))
-        }
+      return new Date(`${year}-${month}-${dat}`);
+    };
 
-        result.totalData = await User.find(
+    result.totalData = await User.find({
+      $and: [
+        { gender: gender },
+        {
+          birthDate: {
+            $gte: getDay(ageMax),
+            $lte: getDay(ageMin),
+          },
+        },
+        {
+          height: {
+            $gte: heightMin,
+            $lte: heightMax,
+          },
+        },
+        {
+          profession: { $in: professional_area },
+        },
+        {
+          workingSector: { $in: working_sector },
+        },
+        {
+          educationQualification: { $in: education },
+        },
+        {
+          homeDivision: { $in: home_division },
+        },
+        {
+          livingIn: { $in: living_country },
+        },
+      ],
+    }).countDocuments();
+    result.data = [];
+
+    if (limit == 0) {
+      result.totalPage = 1;
+    } else {
+      result.totalPage = Math.ceil(
+        (await User.find({
+          $and: [
+            { gender: gender },
             {
-                $and:[
-                    {"gender":gender},
-                    {
-                        "birthDate":{
-                            $gte: getDay(ageMax),
-                            $lte: getDay(ageMin)
-                        }
-                    },
-                    {
-                        "height":{
-                            $gte:heightMin,
-                            $lte:heightMax
-                        }
-                    },
-                    {
-                        "profession":{ $in : professional_area},
-
-                    },
-                    {
-                        "workingSector":{$in:working_sector}
-                    },
-                    {
-                        "educationQualification":{$in:education}
-                    },
-                    {
-                        "homeDivision":{$in:home_division}
-                    },
-                    {
-                        "livingIn":{$in:living_country}
-                    }
-                ]
-            }
-        ).countDocuments();
-        result.data = [];
-
-
-        if(limit == 0){
-            result.totalPage = 1;
-        }else{
-            result.totalPage = Math.ceil(await User.find(
-                {
-                    $and:[
-                        {"gender":gender},
-                        {
-                            "birthDate":{
-                                $gte: getDay(ageMax),
-                                $lte: getDay(ageMin)
-                            }
-                        },
-                        {
-                            "height":{
-                                $gte:heightMin,
-                                $lte:heightMax
-                            }
-                        },
-                        {
-                            "profession":{ $in : professional_area},
-    
-                        },
-                        {
-                            "workingSector":{$in:working_sector}
-                        },
-                        {
-                            "educationQualification":{$in:education}
-                        },
-                        {
-                            "homeDivision":{$in:home_division}
-                        },
-                        {
-                            "livingIn":{$in:living_country}
-                        }
-                    ]
-                }
-            ).countDocuments()/limit);
-        }
-
-        result.previous = {
-            page: page-1,
-            limit
-        }
-        if(page == result.totalPage){
-            result.next = {
-                page: 0,
-                limit
-            }    
-        }
-
-        else{
-            result.next = {
-                page: page+1,
-                limit
-            }
-        }
-
-        result.data = await User.find(
+              birthDate: {
+                $gte: getDay(ageMax),
+                $lte: getDay(ageMin),
+              },
+            },
             {
-                $and:[
-                    {"gender":gender},
-                    {
-                        "birthDate":{
-                            $gte: getDay(ageMax),
-                            $lte: getDay(ageMin)
-                        }
-                    },
-                    {
-                        "height":{
-                            $gte:heightMin,
-                            $lte:heightMax
-                        }
-                    },
-                    {
-                        "profession":{ $in : professional_area},
-
-                    },
-                    {
-                        "workingSector":{$in:working_sector}
-                    },
-                    {
-                        "educationQualification":{$in:education}
-                    },
-                    {
-                        "homeDivision":{$in:home_division}
-                    },
-                    {
-                        "livingIn":{$in:living_country}
-                    }
-                ]
-            }
-        ).select({__v:0}).limit(limit).skip(skip);
-
-        // console.log(result)
-
-        if(result.totalData<1){
-            res.status(400).send({status:false,message:"No people found."});
-        }else{
-            res.json({status:true,result});
-        }
-
-    }catch(error){
-        next(error);
+              height: {
+                $gte: heightMin,
+                $lte: heightMax,
+              },
+            },
+            {
+              profession: { $in: professional_area },
+            },
+            {
+              workingSector: { $in: working_sector },
+            },
+            {
+              educationQualification: { $in: education },
+            },
+            {
+              homeDivision: { $in: home_division },
+            },
+            {
+              livingIn: { $in: living_country },
+            },
+          ],
+        }).countDocuments()) / limit
+      );
     }
-}
 
-exports.changePic = async (req, res, next) =>{
-    try{
-        const photo = req.file.filename;
-        const image = process.env.PUBLIC_LINK+req.file.filename;
-
-        const data = await User.findByIdAndUpdate(req.params.id,{$set:{
-            img:image,
-            photo:photo
-        }});
-
-        if(data._id == undefined){
-
-            fs.unlink('./src/upload/' + photo, (error) => {
-                if (error) {
-                    next(error);
-                }
-            });
-            res.status(400).send({status:false,message:"User not found."});
-
-        }else{
-            if(data.photo){
-                fs.unlink('./src/upload/' + data.photo, (error) => {
-                    if (error) {
-                        next(error);
-                    }
-                });
-            }
-
-            res.json({status:true,message:'Profile picture update successfully.'});
-        }
-    }catch(error){
-        next(error);
+    result.previous = {
+      page: page - 1,
+      limit,
+    };
+    if (page == result.totalPage) {
+      result.next = {
+        page: 0,
+        limit,
+      };
+    } else {
+      result.next = {
+        page: page + 1,
+        limit,
+      };
     }
-}
+
+    result.data = await User.find({
+      $and: [
+        { gender: gender },
+        {
+          birthDate: {
+            $gte: getDay(ageMax),
+            $lte: getDay(ageMin),
+          },
+        },
+        {
+          height: {
+            $gte: heightMin,
+            $lte: heightMax,
+          },
+        },
+        {
+          profession: { $in: professional_area },
+        },
+        {
+          workingSector: { $in: working_sector },
+        },
+        {
+          educationQualification: { $in: education },
+        },
+        {
+          homeDivision: { $in: home_division },
+        },
+        {
+          livingIn: { $in: living_country },
+        },
+      ],
+    })
+      .select({ __v: 0 })
+      .limit(limit)
+      .skip(skip);
+
+    // console.log(result)
+
+    if (result.totalData < 1) {
+      res.status(400).send({ status: false, message: "No people found." });
+    } else {
+      res.json({ status: true, result });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.changePic = async (req, res, next) => {
+  try {
+    const photo = req.file.filename;
+    const image = process.env.PUBLIC_LINK + req.file.filename;
+
+    const data = await User.findByIdAndUpdate(req.params.id, {
+      $set: {
+        img: image,
+        photo: photo,
+      },
+    });
+
+    if (data._id == undefined) {
+      fs.unlink("./src/upload/" + photo, (error) => {
+        if (error) {
+          next(error);
+        }
+      });
+      res.status(400).send({ status: false, message: "User not found." });
+    } else {
+      if (data.photo) {
+        fs.unlink("./src/upload/" + data.photo, (error) => {
+          if (error) {
+            next(error);
+          }
+        });
+      }
+
+      res.json({
+        status: true,
+        message: "Profile picture update successfully.",
+      });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
+
+//----------------------------------------- update user ----------------------------------------------
+
+exports.updateUser = async (req, res, next) => {
+  try {
+    const {
+      name,
+      email,
+      phone,
+      candidateName,
+      birthDate,
+      religion,
+      maritalStatus,
+      nationality,
+      gender,
+      educationDetails,
+      workingSector,
+      educationQualification,
+      professionDetails,
+      profession,
+      incame,
+      homeDivision,
+      fatherStatus,
+      familyDetails,
+      livingIn,
+      fatherOccupation,
+      motherStatus,
+      motherOccupation,
+      livingCity,
+      marriedBrother,
+      unMarriedBrother,
+      marriedSister,
+      unMarriedSister,
+      physicalDetails,
+      weight,
+      height,
+      blood,
+      bodyType,
+      complexion,
+      smoke,
+      religiousValue,
+      familyVale,
+      diet,
+      aboutSelf,
+    } = req.body;
+
+    const data = await User.findByIdAndUpdate(req.params.id, {
+      $set: {
+        name,
+        email,
+        phone,
+        candidateName,
+        birthDate,
+        religion,
+        maritalStatus,
+        nationality,
+        gender,
+        educationDetails,
+        workingSector,
+        educationQualification,
+        professionDetails,
+        profession,
+        incame,
+        homeDivision,
+        fatherStatus,
+        familyDetails,
+        livingIn,
+        fatherOccupation,
+        motherStatus,
+        motherOccupation,
+        livingCity,
+        marriedBrother,
+        unMarriedBrother,
+        marriedSister,
+        unMarriedSister,
+        physicalDetails,
+        weight,
+        height,
+        blood,
+        bodyType,
+        complexion,
+        smoke,
+        religiousValue,
+        familyVale,
+        diet,
+        aboutSelf,
+      },
+    });
+
+    if (data._id != undefined) {
+      res.send({ status: true, message: "Info update successfully." });
+    } else {
+      res.send({ status: false, message: "Faild to update Info." });
+    }
+  } catch (error) {
+    next(error);
+  }
+};
